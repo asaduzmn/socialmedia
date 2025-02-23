@@ -13,7 +13,14 @@ class RegisterForm(UserCreationForm):
         fields = ['username', 'email', 'password1', 'password2']
 
 
+from django import forms
+from .models import Post
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ['content', 'image']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['content'].required = False  

@@ -4,25 +4,59 @@
     <div class="row">
         <div class="col-md-8 mx-auto">
             <h1 class="text-center mb-4">Your Profile</h1>
-            <a href="{% url 'create_post' %}" class="btn btn-primary mb-3">Create Post</a>  <!-- Add this line -->
+
+            <!-- Search and Filters Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Filters</h5>
+                    <form method="GET" action="">
+                        <!-- Search Bar -->
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Search Posts</label>
+                            <input type="text" name="q" class="form-control" placeholder="Enter keywords..." value="{{ request.GET.q }}">
+                        </div>
+
+                        <!-- Media Type Filter -->
+                        <div class="mb-3">
+                            <label for="media_type" class="form-label">Filter by Media Type</label>
+                            <select name="media_type" class="form-select" onchange="this.form.submit()">
+                                <option value="all" {% if request.GET.media_type == 'all' %}selected{% endif %}>All Posts</option>
+                                <option value="text" {% if request.GET.media_type == 'text' %}selected{% endif %}>Text Only</option>
+                                <option value="image" {% if request.GET.media_type == 'image' %}selected{% endif %}>Posts with Images</option>
+                                <option value="image_only" {% if request.GET.media_type == 'image_only' %}selected{% endif %}>Image Only (No Text)</option>
+                            </select>
+                        </div>
+
+                        <!-- Sort By -->
+                        <div class="mb-3">
+                            <label for="sort_by" class="form-label">Sort by Date</label>
+                            <select name="sort_by" class="form-select">
+                                <option value="newest" {% if request.GET.sort_by == 'newest' %}selected{% endif %}>Newest First</option>
+                                <option value="oldest" {% if request.GET.sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+                            </select>
+                        </div>
+
+                        <!-- Apply Filters Button -->
+                        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Display Posts -->
             {% for post in posts %}
                 <div class="card mb-4 shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title">{{ post.user.username }}</h5>
                         <p class="card-text">{{ post.content }}</p>
                         {% if post.image %}
-                            <img src="{{ post.image.url }}" class="img-fluid mb-3">
+                            <img src="{{ post.image.url }}" class="img-fluid mb-3" alt="Post Image">
                         {% endif %}
                         <p class="text-muted">{{ post.created_at }}</p>
-                        {% if request.user == post.user %}
-                            <div class="d-flex gap-2">
-                                <a href="{% url 'edit_post' post.id %}" class="btn btn-warning btn-sm">Edit</a>
-                                <form action="{% url 'delete_post' post.id %}" method="POST">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                            </div>
-                        {% endif %}
+                        <a href="{% url 'edit_post' post.id %}" class="btn btn-warning btn-sm">Edit</a>
+                        <form action="{% url 'delete_post' post.id %}" method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
                     </div>
                 </div>
             {% endfor %}

@@ -1,22 +1,74 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Q
 from .forms import RegisterForm, PostForm
 from .models import Post
 
-# Create your views here.
 def home(request):
-    posts = Post.objects.select_related('user').all().order_by('-created_at')
-    return render(request, 'core/profile.html', {'posts': posts})
+    # Get query parameters
+    query = request.GET.get('q')  # Search keyword
+    user_filter = request.GET.get('user_filter')  # Filter by user
+    media_type = request.GET.get('media_type', 'all')  # Filter by media type
+    sort_by = request.GET.get('sort_by', 'newest')  # Sort by date
 
+    # Start with all posts
+    posts = Post.objects.all()
 
+    # Keyword search
+    if query:
+        posts = posts.filter(Q(content__icontains=query))
+
+    # Filter by user
+    if user_filter:
+        posts = posts.filter(user__username=user_filter)
+
+    # Filter by media type
+    if media_type == 'text':
+        posts = posts.filter(image__isnull=True)  # Text-only posts (no image)
+    elif media_type == 'image':
+        posts = posts.filter(image__isnull=False)  # Posts with images
+    elif media_type == 'image_only':
+        posts = posts.filter(image__isnull=False, content__isnull=True)  # Image-only posts (no text)
+
+    # Sort by date
+    if sort_by == 'oldest':
+        posts = posts.order_by('created_at')
+    else:
+        posts = posts.order_by('-created_at')
+
+    return render(request, 'core/home.html', {'posts': posts})
 
 @login_required
 def profile(request):
-    posts = Post.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'core/profile.html', {'posts': posts})
+    # Get query parameters
+    query = request.GET.get('q')  # Search keyword
+    media_type = request.GET.get('media_type', 'all')  # Filter by media type
+    sort_by = request.GET.get('sort_by', 'newest')  # Sort by date
 
+    # Start with the logged-in user's posts
+    posts = Post.objects.filter(user=request.user)
+
+    # Keyword search
+    if query:
+        posts = posts.filter(Q(content__icontains=query))
+
+    # Filter by media type
+    if media_type == 'text':
+        posts = posts.filter(image__isnull=True)  # Text-only posts (no image)
+    elif media_type == 'image':
+        posts = posts.filter(image__isnull=False)  # Posts with images
+    elif media_type == 'image_only':
+        posts = posts.filter(image__isnull=False, content__isnull=True)  # Image-only posts (no text)
+
+    # Sort by date
+    if sort_by == 'oldest':
+        posts = posts.order_by('created_at')
+    else:
+        posts = posts.order_by('-created_at')
+
+    return render(request, 'core/profile.html', {'posts': posts})
 
 @login_required
 def create_post(request):
