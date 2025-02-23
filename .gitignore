@@ -1,0 +1,22 @@
+# Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Virtual environment
+venv/
+env/
+.venv/
+Pipfile
+Pipfile.lock
+
+# IDE
+.vscode/
+.idea/
+
+# Media and static files (if not needed in the repo)
+media/
+staticfiles/
